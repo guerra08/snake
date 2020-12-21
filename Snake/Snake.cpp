@@ -120,6 +120,15 @@ int main()
 				points++;
 			}
 
+			// Check collision with itself
+			auto front = snake.front();
+			auto aux = snake.begin();
+			aux++;
+			for (aux; aux != snake.end(); ++aux) {
+				if (front.x == aux->x && front.y == aux->y)
+					isAlive = false;
+			}
+
 			// Check if snake is in bounds
 			if (snake.front().x >= width || snake.front().x < 0 || snake.front().y >= height || snake.front().y < 0) 
 			{
