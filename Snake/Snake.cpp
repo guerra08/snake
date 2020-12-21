@@ -46,22 +46,22 @@ int main()
 	std::uniform_int_distribution<int> widthRand(0, width);
 	std::uniform_int_distribution<int> heightRand(3, height);
 
-	// Creates a new food
-	Food food = {widthRand(rng), heightRand(rng)};
-
-	// Snake initialization
-	std::list<SnakeSegment> snake = { {50, 27}, {51, 27}, {52, 27} };
-
-	bool isLeft, isRight, isUp, isDown = false;
-
-	// 0 TOP, 1 RIGHT, 2 BOTTOM, 3 LEFT
-	int currentDirection = 3;
-	int oldDirection = 3;
-	bool isAlive = true;
-	int points = 0;
-
 	while (true) 
 	{
+		// Creates a new food
+		Food food = { widthRand(rng), heightRand(rng) };
+
+		// Snake initialization
+		std::list<SnakeSegment> snake = { {50, 27}, {51, 27}, {52, 27} };
+
+		bool isLeft, isRight, isUp, isDown = false;
+
+		// 0 TOP, 1 RIGHT, 2 BOTTOM, 3 LEFT
+		int currentDirection = 3;
+		int oldDirection = 3;
+		bool isAlive = true;
+		int points = 0;
+
 		while(isAlive)
 		{
 			// Gets the keypress for direction, without blocking
@@ -132,11 +132,11 @@ int main()
 			// Adds borders
 			for (int i = 0; i < width; i++)
 			{
-				screen[2 * width + i] = '=';
+				screen[2 * width + i] = L'=';
 			}
 
 			// Adds the food
-			screen[food.y * width + food.x] = 'F';
+			screen[food.y * width + food.x] = L'F';
 
 			/*
 				Snake y -> Position on vertical axis
@@ -160,7 +160,9 @@ int main()
 		}
 
 		wsprintf(&screen[15 * width + 48], L"YOU ARE DEAD | %d POINTS", points);
+		wsprintf(&screen[16 * width + 47], L"PRESS ENTER TO PLAY AGAIN");
 		WriteConsoleOutputCharacter(console, screen, width * height, { 0,0 }, &writtenBytes);
+		while ((0x8000 & GetAsyncKeyState((unsigned char)('\x0D'))) == 0);
 	}
 
 	return 0;
