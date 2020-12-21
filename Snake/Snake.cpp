@@ -10,6 +10,8 @@
 #include <chrono>
 #include <thread>
 
+using namespace std::chrono_literals;
+
 struct SnakeSegment {
 	int x;
 	int y;
@@ -34,21 +36,21 @@ int main()
 	SetConsoleActiveScreenBuffer(console);
 	DWORD writtenBytes = 0;
 
+	// Frame timing
+	using framerate = std::chrono::duration<int, std::ratio<1, 24>>;
+	auto tp = std::chrono::system_clock::now() + framerate{ 1 };
+
 	// Randomizers for width and height
 	std::random_device rd;
 	std::mt19937 rng(rd());
 	std::uniform_int_distribution<int> widthRand(0, width);
-	std::uniform_int_distribution<int> heightRand(0, height);
+	std::uniform_int_distribution<int> heightRand(3, height);
 
 	// Creates a new food
 	Food food = {widthRand(rng), heightRand(rng)};
 
 	// Snake initialization
 	std::list<SnakeSegment> snake = { {50, 27}, {51, 27}, {52, 27} };
-
-	// Timer for frame rate inside loop
-	auto t1 = std::chrono::system_clock::now();
-	auto t2 = std::chrono::system_clock::now();
 
 	bool isLeft, isRight, isUp, isDown = false;
 
@@ -62,20 +64,6 @@ int main()
 	{
 		while(isAlive)
 		{
-			// Logic for frame timing, 66.6 ms.
-			t1 = std::chrono::system_clock::now();
-			std::chrono::duration<double, std::milli> work_time = t1 - t2;
-
-			if (work_time.count() < 66.6)
-			{
-				std::chrono::duration<double, std::milli> delta_ms(66.6 - work_time.count());
-				auto delta_ms_duration = std::chrono::duration_cast<std::chrono::milliseconds>(delta_ms);
-				std::this_thread::sleep_for(std::chrono::milliseconds(delta_ms_duration.count()));
-			}
-
-			t2 = std::chrono::system_clock::now();
-			std::chrono::duration<double, std::milli> sleep_time = t2 - t1;
-
 			// Gets the keypress for direction, without blocking
 			isLeft = (0x8000 & GetAsyncKeyState((unsigned char)('\x25'))) != 0;
 			isRight = (0x8000 & GetAsyncKeyState((unsigned char)('\x27'))) != 0;
@@ -130,7 +118,7 @@ int main()
 			}
 
 			// Check if snake is in bounds
-			if (snake.front().x >= width || snake.front().x < 0 || snake.front().y >= height || snake.front().y < 0) 
+			if (snake.front().x >= width || snake.front().x < 0 || snake.front().y >= height || snake.front().y < 3) 
 			{
 				isAlive = false;
 			}
@@ -139,6 +127,12 @@ int main()
 			for (int i = 0; i < width * height; i++)
 			{
 				screen[i] = L' ';
+			}
+
+			// Adds borders
+			for (int i = 0; i < width; i++)
+			{
+				screen[2 * width + i] = '=';
 			}
 
 			// Adds the food
@@ -158,10 +152,14 @@ int main()
 			}
 			screen[snake.front().y * width + snake.front().x] = L'O';
 
+			wsprintf(&screen[width], L"SNAKE   |   SCORE: %d", points);
 			WriteConsoleOutputCharacter(console, screen, width * height, { 0,0 }, &writtenBytes);
+
+			std::this_thread::sleep_until(tp);
+			tp += framerate{ 1 };
 		}
 
-		wsprintf(&screen[15 * width + 50], L"YOU ARE DEAD | %d POINTS", points);
+		wsprintf(&screen[15 * width + 48], L"YOU ARE DEAD | %d POINTS", points);
 		WriteConsoleOutputCharacter(console, screen, width * height, { 0,0 }, &writtenBytes);
 	}
 
